@@ -65,7 +65,6 @@ y = [pkl[k][2] for k in inds]
 lengths1 = [pkl[k][0].shape[0] for k in inds]
 lengths2 = [pkl[k][1].shape[0] for k in inds]
 
-print(y[:50])
 
 # Make masks
 M1 = LtoM(lengths1, mfcc_dim, max_frame_len)
@@ -80,7 +79,7 @@ X1 = torch.FloatTensor(X1)
 X2 = torch.FloatTensor(X2)
 M1 = torch.FloatTensor(M1)
 M2 = torch.FloatTensor(M2)
-y = torch.FloatTensor(y)
+y = torch.LongTensor(y)
 
 # Define training constants
 lr = 5*1e-2
@@ -89,7 +88,7 @@ bs = 10000
 sch = 0.985
 seed = 1
 torch.manual_seed(seed)
-'''
+
 # Store all training dataset in a single wrapped tensor
 train_ds = TensorDataset(X1, X2, M1, M2)
 
@@ -100,7 +99,7 @@ model = Siamese(mfcc_dim)
 model.to(device)
 print('model initialised')
 
-criterion = torch.nn.MSELoss(reduction = 'mean')
+criterion = torch.nn.BCELoss()
 optimizer = torch.optim.SGD(model.parameters(), lr=lr, momentum = 0.9, nesterov=True)
 # Scheduler for an adpative learning rate
 # Every step size number of epochs, lr = lr * gamma
@@ -108,6 +107,7 @@ scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size = 1, gamma = sc
 
 for epoch in range(epochs):
     model.train()
+    print("On Epoch, ", epoch)
     for x1, x2, m1, m2 in train_dl:
 
         x1.unsqueeze(0)
@@ -119,6 +119,16 @@ for epoch in range(epochs):
         d_pred = model(x1, x2, m1, m2)
 
         # Compute loss
-        log_d_pred = torch.log(d_pred.squeeze())
-        diff = log_d_pred - y
-'''
+        probability = torch.nn.functional.sigmoid(d_pred.squeeze())
+        loss = criterion(probability, y)
+
+        # Zero gradients, backward pass, update weights
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
+        print(loss.item())
+
+# Save the trained model
+file_name = "Siamese.pt"
+torch.save(model, file_name)
