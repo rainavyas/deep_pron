@@ -119,7 +119,7 @@ for epoch in range(epochs):
         d_pred = model(x1u, x2u, m1u, m2u)
 
         # Compute loss
-        probability = torch.nn.functional.sigmoid(d_pred.squeeze())
+        probability = torch.sigmoid(d_pred.squeeze())
         loss = criterion(probability, yb)
 
         # Zero gradients, backward pass, update weights
