@@ -65,6 +65,8 @@ y = [pkl[k][2] for k in inds]
 lengths1 = [pkl[k][0].shape[0] for k in inds]
 lengths2 = [pkl[k][1].shape[0] for k in inds]
 
+print(y[:50])
+
 # Make masks
 M1 = LtoM(lengths1, mfcc_dim, max_frame_len)
 M2 = LtoM(lengths2, mfcc_dim, max_frame_len)

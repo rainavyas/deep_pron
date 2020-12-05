@@ -27,9 +27,9 @@ class Siamese(torch.nn.Module):
         outputs, hidden_states = self.lstm(Xp)
 
         # Convert packed object to padded tensor
-		O = torch.nn.utils.rnn.pad_packed_sequence(outputs, batch_first = True, total_length = X.size(2))
-		Op = O[0]
-		# Unflatten the tensor
+        O = torch.nn.utils.rnn.pad_packed_sequence(outputs, batch_first = True, total_length = X.size(2))
+        Op = O[0]
+        # Unflatten the tensor
         X_after_RNN = torch.reshape(Op, (X.size(0), X.size(1), X.size(2), -1))
 
         return X_after_RNN
@@ -56,19 +56,19 @@ class Siamese(torch.nn.Module):
         # Make mask useful, so that 0 in useful positions and -inf elsewhere
         M_useful = (M - 1)*100000
         S_half = torch.einsum('buvi,ij->buvj', X, A)
-		S = torch.einsum('buvi,buvi->buv', X, S_half)
-		T = torch.nn.Tanh()
-		ST = T(S)
-		# Use mask to convert padding scores to -inf (go to zero after softmax normalisation)
-		ST_masked = ST + M_useful
-		# Normalise weights using softmax for each utterance of each speaker
-		SM = torch.nn.Softmax(dim = 2)
-		W = SM(ST_masked)
-		# Perform weighted sum (using normalised scores above) along the words axes for X
-		weights_extra_axis = torch.unsqueeze(W, 3)
-		repeated_weights = weights_extra_axis.expand(-1, -1, -1, X.size(3))
-		x_multiplied = X * repeated_weights
-		x_attn = torch.sum(x_multiplied, dim = 2)
+        S = torch.einsum('buvi,buvi->buv', X, S_half)
+        T = torch.nn.Tanh()
+        ST = T(S)
+        # Use mask to convert padding scores to -inf (go to zero after softmax normalisation)
+        ST_masked = ST + M_useful
+        # Normalise weights using softmax for each utterance of each speaker
+        SM = torch.nn.Softmax(dim = 2)
+        W = SM(ST_masked)
+        # Perform weighted sum (using normalised scores above) along the words axes for X
+        weights_extra_axis = torch.unsqueeze(W, 3)
+        repeated_weights = weights_extra_axis.expand(-1, -1, -1, X.size(3))
+        x_multiplied = X * repeated_weights
+        x_attn = torch.sum(x_multiplied, dim = 2)
 
         return x_attn
 
