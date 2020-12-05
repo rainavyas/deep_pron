@@ -79,7 +79,7 @@ X1 = torch.FloatTensor(X1)
 X2 = torch.FloatTensor(X2)
 M1 = torch.FloatTensor(M1)
 M2 = torch.FloatTensor(M2)
-y = torch.LongTensor(y)
+y = torch.FloatTensor(y)
 
 # Define training constants
 lr = 5*1e-2
@@ -110,13 +110,13 @@ for epoch in range(epochs):
     print("On Epoch, ", epoch)
     for x1, x2, m1, m2 in train_dl:
 
-        x1.unsqueeze(0)
-        x2.unsqueeze(0)
-        m1.unsqueeze(0)
-        m2.unsqueeze(0)
+        x1u = x1.unsqueeze(0)
+        x2u = x2.unsqueeze(0)
+        m1u = m1.unsqueeze(0)
+        m2u = m2.unsqueeze(0)
 
         # Forward Pass
-        d_pred = model(x1, x2, m1, m2)
+        d_pred = model(x1u, x2u, m1u, m2u)
 
         # Compute loss
         probability = torch.nn.functional.sigmoid(d_pred.squeeze())

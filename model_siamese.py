@@ -60,7 +60,7 @@ class Siamese(torch.nn.Module):
         T = torch.nn.Tanh()
         ST = T(S)
         # Use mask to convert padding scores to -inf (go to zero after softmax normalisation)
-        ST_masked = ST + M_useful
+        ST_masked = ST + M_useful[:,:,:,0]
         # Normalise weights using softmax for each utterance of each speaker
         SM = torch.nn.Softmax(dim = 2)
         W = SM(ST_masked)
@@ -95,7 +95,7 @@ class Siamese(torch.nn.Module):
         X2_after_LSTM = self.apply_LSTM(X2, M2)
 
         #Apply attention per sequence
-        A = self.attn(torch.eye(X1.size(3)))
+        A = self.attn(torch.eye(X1_after_LSTM.size(3)))
         H1 = self.apply_selfattn_no_query(X1_after_LSTM, A, M1)
         H2 = self.apply_selfattn_no_query(X2_after_LSTM, A, M2)
 
