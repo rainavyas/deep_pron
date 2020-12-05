@@ -90,7 +90,7 @@ seed = 1
 torch.manual_seed(seed)
 
 # Store all training dataset in a single wrapped tensor
-train_ds = TensorDataset(X1, X2, M1, M2)
+train_ds = TensorDataset(X1, X2, M1, M2, y)
 
 # Use DataLoader to handle minibatches easily
 train_dl = DataLoader(train_ds, batch_size = bs, shuffle = True)
@@ -108,7 +108,7 @@ scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size = 1, gamma = sc
 for epoch in range(epochs):
     model.train()
     print("On Epoch, ", epoch)
-    for x1, x2, m1, m2 in train_dl:
+    for x1, x2, m1, m2, yb in train_dl:
 
         x1u = x1.unsqueeze(0)
         x2u = x2.unsqueeze(0)
@@ -120,7 +120,7 @@ for epoch in range(epochs):
 
         # Compute loss
         probability = torch.nn.functional.sigmoid(d_pred.squeeze())
-        loss = criterion(probability, y)
+        loss = criterion(probability, yb)
 
         # Zero gradients, backward pass, update weights
         optimizer.zero_grad()
