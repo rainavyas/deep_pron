@@ -6,6 +6,7 @@ import pickle
 import sys
 import os
 import argparse
+from model_siamese import Siamese
 
 # Set device
 def get_default_device():
@@ -79,4 +80,43 @@ M1 = torch.FloatTensor(M1)
 M2 = torch.FloatTensor(M2)
 y = torch.FloatTensor(y)
 
-print(X1.size())
+# Define training constants
+lr = 5*1e-2
+epochs = 20
+bs = 10000
+sch = 0.985
+seed = 1
+torch.manual_seed(seed)
+'''
+# Store all training dataset in a single wrapped tensor
+train_ds = TensorDataset(X1, X2, M1, M2)
+
+# Use DataLoader to handle minibatches easily
+train_dl = DataLoader(train_ds, batch_size = bs, shuffle = True)
+
+model = Siamese(mfcc_dim)
+model.to(device)
+print('model initialised')
+
+criterion = torch.nn.MSELoss(reduction = 'mean')
+optimizer = torch.optim.SGD(model.parameters(), lr=lr, momentum = 0.9, nesterov=True)
+# Scheduler for an adpative learning rate
+# Every step size number of epochs, lr = lr * gamma
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size = 1, gamma = sch)
+
+for epoch in range(epochs):
+    model.train()
+    for x1, x2, m1, m2 in train_dl:
+
+        x1.unsqueeze(0)
+        x2.unsqueeze(0)
+        m1.unsqueeze(0)
+        m2.unsqueeze(0)
+
+        # Forward Pass
+        d_pred = model(x1, x2, m1, m2)
+
+        # Compute loss
+        log_d_pred = torch.log(d_pred.squeeze())
+        diff = log_d_pred - y
+'''
