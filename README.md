@@ -8,4 +8,5 @@ https://www.isca-speech.org/archive/Interspeech_2018/pdfs/1087.pdf
 
 ### python3.6 or above
 ### pip install torch torchvision
+### pip install numpy
 
