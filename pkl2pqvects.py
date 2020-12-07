@@ -13,6 +13,9 @@ n = number of features (e.g. 13)
 '''
 import numpy as np
 import pickle
+import argparse
+import sys
+import os
 
 def get_phones(alphabet='arpabet'):
     if alphabet == 'arpabet':
@@ -80,3 +83,39 @@ def get_vects(obj, phones, F=100, I=500):
                 k += 1
 
     return X1, X2, M1, M2
+
+# Get command line arguments
+commandLineParser = argparse.ArgumentParser()
+commandLineParser.add_argument('PKL', type=str, help='Specify pkl file')
+commandLineParser.add_argument('OUT', type=str, help='Specify output pkl file')
+commandLineParser.add_argument('--F', default=100, type=int, help='Specify maximum number of frames in phone instance')
+commandLineParser.add_argument('--I', default=500, type=int, help='Specify maximum number of instances of a phone')
+
+
+args = commandLineParser.parse_args()
+pkl_file = args.PKL
+out_file = args.OUT
+F = args.F
+I = args.I
+
+# Save the command run
+if not os.path.isdir('CMDs'):
+    os.mkdir('CMDs')
+with open('CMDs/pkl2pqvects.cmd', 'a') as f:
+    f.write(' '.join(sys.argv)+'\n')
+
+pkl = pickle.load(open(pkl_file, "rb"))
+print("Loaded pkl")
+
+# Get the phones
+phones = get_phones()
+
+# Get the batched tensors
+X1, X2, M1, M2 = get_vects(pkl, phones, F, I)
+
+# Get the output labels
+y = (pkl['score'])
+
+# Save to pickle file
+pkl_obj = [X1.tolist(), X2.tolist(), M1.tolist(), M2.tolist(), y]
+pickle.dump(pkl_obj, open(out_file, "wb"))
