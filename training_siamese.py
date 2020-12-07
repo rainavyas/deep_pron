@@ -82,9 +82,9 @@ M2 = torch.FloatTensor(M2)
 y = torch.FloatTensor(y)
 
 # Define training constants
-lr = 5*1e-2
+lr = 8*1e-2
 epochs = 20
-bs = 10000
+bs = 1000
 sch = 0.985
 seed = 1
 torch.manual_seed(seed)
@@ -108,6 +108,8 @@ scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size = 1, gamma = sc
 for epoch in range(epochs):
     model.train()
     print("On Epoch, ", epoch)
+    total = 0
+    counter = 0
     for x1, x2, m1, m2, yb in train_dl:
 
         x1u = x1.unsqueeze(0)
@@ -119,7 +121,7 @@ for epoch in range(epochs):
         d_pred = model(x1u, x2u, m1u, m2u)
 
         # Compute loss
-        probability = torch.nn.functional.sigmoid(d_pred.squeeze())
+        probability = torch.sigmoid(d_pred.squeeze())
         loss = criterion(probability, yb)
 
         # Zero gradients, backward pass, update weights
@@ -127,7 +129,10 @@ for epoch in range(epochs):
         loss.backward()
         optimizer.step()
 
-        print(loss.item())
+        total +=loss.item()
+        counter+=1
+        running_avg_loss = total/counter
+        print("Running Loss this epoch avg: ", running_avg_loss)
 
 # Save the trained model
 file_name = "Siamese.pt"
