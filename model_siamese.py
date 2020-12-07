@@ -10,7 +10,7 @@ class Siamese(torch.nn.Module):
     def apply_LSTM(self, X, M):
         '''
         X = input matrix
-        L = mask
+        M = mask
         '''
 
         # Create a lengths matrix
