@@ -55,15 +55,17 @@ def get_vects(obj, phones, F=100, I=500):
                 for ph in range(len(obj['plp'][spk][utt][w])):
                     # n.b. this is iterating through the phones instances that occur sequentially in a word
                     ph_ind = obj['phone'][spk][utt][w][ph]
-                    if I_counter[obj['phone'][spk][utt][w][ph]] >= I:
+                    if I_counter[ph_ind] >= I:
                         continue
                     for frame in range(len(obj['plp'][spk][utt][w][ph])):
-                        if F_counter[ph_ind][I_counter[ph_ind]] >= F:
+                        I_ind = int(I_counter[ph_ind].item())
+                        if F_counter[ph_ind][I_ind] >= F:
                             continue
                         X = np.array(obj['plp'][spk][utt][w][ph][frame])
-                        Xs[ph_ind][I_counter[ph_ind]][F_counter[ph_ind][I_counter[ph_ind]]] = X
-                        F_counter[ph_ind][I_counter[ph_ind]] += 1
-                    I_counter[obj['phone'][spk][utt][w][ph]]+=1
+                        F_ind = int(F_counter[ph_ind][I_ind].item())
+                        Xs[ph_ind][I_ind][F_ind] = X
+                        F_counter[ph_ind][I_ind] += 1
+                    I_counter[ph_ind]+=1
 
 
         # Consturct every unique pairing of phones, related mfcc vectors
@@ -71,15 +73,15 @@ def get_vects(obj, phones, F=100, I=500):
         for i in range(P):
             for j in range(i + 1, P):
                 # Make X1 and M1
-                for instance in range(I_counter[i]):
+                for instance in range(int(I_counter[i].item())):
                     X1[spk][k][instance] = Xs[i][instance]
-                    M1[spk][k][instance][:F_counter[i][instance]] = np.tile(np.ones(n), (F_counter[i][instance], 1))
-
+                    F_ind = int(F_counter[i][instance].item())
+                    M1[spk][k][instance][:F_ind] = np.tile(np.ones(n), (F_ind, 1))
                 # Make X2 and M2
-                for instance in range(I_counter[j]):
+                for instance in range(int(I_counter[j].item())):
                     X2[spk][k][instance] = Xs[j][instance]
-                    M2[spk][k][instance][:F_counter[j][instance]] = np.tile(np.ones(n), (F_counter[j][instance], 1))
-
+                    F_ind = int(F_counter[j][instance].item())
+                    M2[spk][k][instance][:F_ind] = np.tile(np.ones(n), (F_ind, 1))
                 k += 1
 
     return X1, X2, M1, M2
