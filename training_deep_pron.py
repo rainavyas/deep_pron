@@ -8,6 +8,8 @@ import os
 import argparse
 from pkl2pqvects import get_vects, get_phones
 from model_deep_pron import Deep_Pron
+from model_siamese import Siamese
+
 
 # Get command line arguments
 commandLineParser = argparse.ArgumentParser()
@@ -66,7 +68,7 @@ y_val = y[:validation_size]
 # Define training constants
 lr = 8*1e-2
 epochs = 20
-bs = 1000
+bs = 100
 sch = 0.985
 seed = 1
 torch.manual_seed(seed)
@@ -82,7 +84,7 @@ siamese_model = torch.load(siam_model)
 
 # Initialise deep pron model to be trained
 deep_model = Deep_Pron()
-deep_model.to(device)
+#deep_model.to(device)
 
 # Transfer requried learnt parameters of pre-trained Siamese model
 siamese_model_dict = siamese_model.state_dict()
@@ -97,7 +99,7 @@ deep_model.load_state_dict(model_dict)
 print("Initialised model")
 
 criterion = torch.nn.MSELoss(reduce='mean')
-optimizer = torch.optim.SGD(model.parameters(), lr=lr, momentum = 0.9, nesterov=True)
+optimizer = torch.optim.SGD(deep_model.parameters(), lr=lr, momentum = 0.9, nesterov=True)
 # Scheduler for an adpative learning rate
 # Every step size number of epochs, lr = lr * gamma
 scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size = 1, gamma = sch)

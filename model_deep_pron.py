@@ -1,15 +1,17 @@
 import torch
+import torch.nn.functional as F
 
 class Deep_Pron(torch.nn.Module):
     def __init__(self, num_features=13):
-        super(Siamese, self).__init__()
+        super(Deep_Pron, self).__init__()
         self.lstm = torch.nn.LSTM(input_size = num_features, hidden_size=num_features, num_layers=1, batch_first=True, bidirectional=True)
         self.attn = torch.nn.Linear(2*num_features, 2*num_features, bias = False)
         self.attn2 = torch.nn.Linear(2*num_features, 2*num_features, bias = False)
 
         # Parameters for FCC
-        self.bn1 = torch.nn.BatchNorm1d(num_features=num_features)
-        self.fc1 = torch.nn.Linear(num_features, 1000)
+        num_distance_features = 1128
+        self.bn1 = torch.nn.BatchNorm1d(num_features=num_distance_features)
+        self.fc1 = torch.nn.Linear(num_distance_features, 1000)
         self.fc2 = torch.nn.Linear(1000, 1000)
         self.fc3 = torch.nn.Linear(1000, 1000)
         self.fc4 = torch.nn.Linear(1000, 1000)
@@ -30,6 +32,7 @@ class Deep_Pron(torch.nn.Module):
         # Flatten lens and X to use in nn.lstm module
         Xf = X.view(X.size(0)*X.size(1)*X.size(2), X.size(3), X.size(4))
         lensf = lens.view(X.size(0)*X.size(1)*X.size(2))
+        lensf[lensf==0]=1
 
         # Pack padded tensor into a padded sequence object
         Xp = torch.nn.utils.rnn.pack_padded_sequence(Xf, lensf, batch_first = True, enforce_sorted = False)
@@ -38,7 +41,7 @@ class Deep_Pron(torch.nn.Module):
         outputs, hidden_states = self.lstm(Xp)
 
         # Convert packed object to padded tensor
-        O = torch.nn.utils.rnn.pad_packed_sequence(outputs, batch_first = True, total_length = X.size(2))
+        O = torch.nn.utils.rnn.pad_packed_sequence(outputs, batch_first = True, total_length = X.size(3))
         Op = O[0]
 
         # Unflatten the tensor
@@ -108,7 +111,7 @@ class Deep_Pron(torch.nn.Module):
         T = torch.nn.Tanh()
         ST = T(S)
         # Use mask to convert padding scores to -inf (go to zero after softmax normalisation)
-        ST_masked = ST + M_useful[:,:,:,0]
+        ST_masked = ST + M_useful[:,:,:,0,0]
         # Normalise weights using softmax for each utterance of each speaker
         SM = torch.nn.Softmax(dim = 2)
         W = SM(ST_masked)
@@ -120,7 +123,7 @@ class Deep_Pron(torch.nn.Module):
 
         return x_attn
 
-    def forward(X1, X2, M1, M2):
+    def forward(self, X1, X2, M1, M2):
         '''
         Xi = [N X P*(P-1)*0.5 x I x F X n]
         N = batch size (number of speakers)
@@ -144,16 +147,16 @@ class Deep_Pron(torch.nn.Module):
 
         # Apply attention over instances per phones
         A2 = self.attn2(torch.eye(X1_after_frame_attn.size(-1)))
-        X1_after_inst_attn = self.apply_attention_over_frames(X1_after_frame_attn, A, M1)
-        X2_after_inst_attn = self.apply_attention_over_frames(X2_after_frame_attn, A, M2)
+        X1_after_inst_attn = self.apply_attention_over_instances(X1_after_frame_attn, A2, M1)
+        X2_after_inst_attn = self.apply_attention_over_instances(X2_after_frame_attn, A2, M2)
 
         # Calculate phone distances using l2-norm
-        d1 = (X1-X2)**2
+        d1 = (X1_after_inst_attn-X2_after_inst_attn)**2
         d = torch.sum(d1, dim=-1)
 
         # Pass through FCC layers
         # Normalize each input vector
-        X_norm = self.bn1(feats_correct)
+        X_norm = self.bn1(d)
         h1 = F.relu(self.fc1(X_norm))
         h2 = F.relu(self.fc2(self.drop_layer(h1)))
         h3 = F.relu(self.fc3(h2))

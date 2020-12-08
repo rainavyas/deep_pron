@@ -86,6 +86,7 @@ def get_vects(obj, phones, F=100, I=500):
 
     return X1, X2, M1, M2
 
+'''
 # Get command line arguments
 commandLineParser = argparse.ArgumentParser()
 commandLineParser.add_argument('PKL', type=str, help='Specify pkl file')
@@ -121,3 +122,4 @@ y = (pkl['score'])
 # Save to pickle file
 pkl_obj = [X1.tolist(), X2.tolist(), M1.tolist(), M2.tolist(), y]
 pickle.dump(pkl_obj, open(out_file, "wb"))
+'''
