@@ -9,7 +9,7 @@ import argparse
 from pkl2pqvects import get_vects, get_phones
 from model_deep_pron import Deep_Pron
 from model_siamese import Siamese
-
+from utility import calculate_mse
 
 # Get command line arguments
 commandLineParser = argparse.ArgumentParser()
@@ -124,8 +124,9 @@ for epoch in range(epochs):
 
     # Validation
     deep_model.eval()
-    mse_loss = deep_model(X1_val, X2_val, M1_val, M2_val)
-    print("Validation Loss: ", mse_loss.item())
+    y_val_pred = deep_model(X1_val, X2_val, M1_val, M2_val)
+    mse_loss = calculate_mse(y_val_pred.tolist(), y_val.tolist())
+    print("Validation Loss: ", mse_loss)
 
 # Save the trained model
 torch.save(deep_model, out_file)
