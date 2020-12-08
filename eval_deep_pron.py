@@ -44,7 +44,7 @@ X1 = torch.from_numpy(X1).float()
 X2 = torch.from_numpy(X2).float()
 M1 = torch.from_numpy(M1).float()
 M2 = torch.from_numpy(M2).float()
-y = torch.from_numpy(y).float()
+y = torch.FloatTensor(y)
 
 
 # Load the deep pron model
