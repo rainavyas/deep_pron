@@ -40,11 +40,12 @@ X1, X2, M1, M2 = get_vects(pkl, phones, F, I)
 y = (pkl['score'])
 
 # Convert to tensors
-X1 = torch.FloatTensor(X1.tolist())
-X2 = torch.FloatTensor(X2.tolist())
-M1 = torch.FloatTensor(M1.tolist())
-M2 = torch.FloatTensor(M2.tolist())
-y = torch.FloatTensor(y)
+X1 = torch.from_numpy(X1).float()
+X2 = torch.from_numpy(X2).float()
+M1 = torch.from_numpy(M1).float()
+M2 = torch.from_numpy(M2).float()
+y = torch.from_numpy(y).float()
+
 
 # Load the deep pron model
 deep_model = torch.load(model_file)
