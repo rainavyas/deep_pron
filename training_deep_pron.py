@@ -16,13 +16,16 @@ commandLineParser = argparse.ArgumentParser()
 commandLineParser.add_argument('PKL', type=str, help='Specify input pkl file')
 commandLineParser.add_argument('OUT', type=str, help='Specify output pt file')
 commandLineParser.add_argument('SIAM', type=str, help='Specify pre-trained Siamese .pt model')
+commandLineParser.add_argument('--N', default=993, type=int, help='Specify number of speakers')
 commandLineParser.add_argument('--F', default=100, type=int, help='Specify maximum number of frames in phone instance')
 commandLineParser.add_argument('--I', default=500, type=int, help='Specify maximum number of instances of a phone')
+
 
 args = commandLineParser.parse_args()
 pkl_file = args.PKL
 out_file = args.OUT
 siam_model = args.SIAM
+N = args.N
 F = args.F
 I = args.I
 
@@ -39,7 +42,7 @@ print("Loaded pkl")
 phones = get_phones()
 
 # Get the batched tensors
-X1, X2, M1, M2 = get_vects(pkl, phones, F, I)
+X1, X2, M1, M2 = get_vects(pkl, phones, N, F, I)
 
 # Get the output labels
 y = (pkl['score'])
@@ -53,7 +56,7 @@ y = torch.FloatTensor(y)
 
 
 # Split into training and validation sets
-validation_size = 100
+validation_size = 50
 X1_train = X1[validation_size:]
 X1_val = X1[:validation_size]
 X2_train = X2[validation_size:]
@@ -62,14 +65,13 @@ M1_train = M1[validation_size:]
 M1_val = M1[:validation_size]
 M2_train = M2[validation_size:]
 M2_val = M2[:validation_size]
-y_train = y[validation_size:]
+y_train = y[validation_size:N]
 y_val = y[:validation_size]
 
 # Define training constants
-# Define training constants
 lr = 8*1e-2
 epochs = 20
-bs = 100
+bs = 50
 sch = 0.985
 seed = 1
 torch.manual_seed(seed)
@@ -99,7 +101,7 @@ model_dict.update(pretrained_dict)
 deep_model.load_state_dict(model_dict)
 print("Initialised model")
 
-criterion = torch.nn.MSELoss(reduce='mean')
+criterion = torch.nn.MSELoss(reduction='mean')
 optimizer = torch.optim.SGD(deep_model.parameters(), lr=lr, momentum = 0.9, nesterov=True)
 # Scheduler for an adpative learning rate
 # Every step size number of epochs, lr = lr * gamma

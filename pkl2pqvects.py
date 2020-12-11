@@ -31,9 +31,9 @@ def get_phones(alphabet='arpabet'):
     raise ValueError('Alphabet name not recognised: ' + alphabet)
 
 
-def get_vects(obj, phones, F=100, I=500):
+def get_vects(obj, phones, N, F=100, I=500):
     n = len(obj['plp'][0][0][0][0][0]) # dimension of mfcc vector
-    N = len(obj['plp'])
+    #N = len(obj['plp'])
     P = len(phones)-1
 
     # Define the tensors required
