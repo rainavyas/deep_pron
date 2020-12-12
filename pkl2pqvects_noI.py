@@ -43,7 +43,6 @@ def get_vects(obj, phones, N, F=1000):
     M1 = np.zeros((N, int(P*(P-1)*0.5), F, n))
     M2 = np.zeros((N, int(P*(P-1)*0.5), F, n))
 
-
     for spk in range(N):
         print("On speaker " + str(spk) + " of " + str(N))
         Xs = np.zeros((P, F, n))

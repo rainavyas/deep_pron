@@ -18,8 +18,7 @@ commandLineParser.add_argument('OUT', type=str, help='Specify output pt file')
 #commandLineParser.add_argument('SIAM', type=str, help='Specify pre-trained Siamese .pt model')
 commandLineParser.add_argument('--N', default=993, type=int, help='Specify number of speakers')
 commandLineParser.add_argument('--F', default=100, type=int, help='Specify maximum number of frames in phone instance')
-commandLineParser.add_argument('--I', default=500, type=int, help='Specify maximum number of instances of a phone')
-
+commandLineParser.add_argument('--checkpoint', default=None, type=str, help='Specify part trained model path')
 
 args = commandLineParser.parse_args()
 pkl_file = args.PKL
@@ -27,7 +26,7 @@ out_file = args.OUT
 #siam_model = args.SIAM
 N = args.N
 F = args.F
-I = args.I
+checkpoint = args.checkpoint
 
 # Save the command run
 if not os.path.isdir('CMDs'):
@@ -69,7 +68,7 @@ y_train = y[validation_size:N]
 y_val = y[:validation_size]
 
 # Define training constants
-lr = 8*1e-2
+lr = 8*1e-5
 epochs = 20
 bs = 50
 sch = 0.985
@@ -86,7 +85,10 @@ train_dl = DataLoader(train_ds, batch_size = bs, shuffle = True)
 #siamese_model = torch.load(siam_model)
 
 # Initialise deep pron model to be trained
-deep_model = Deep_Pron()
+if checkpoint == None:
+    deep_model = Deep_Pron()
+else:
+    deep_model = torch.load(checkpoint)
 #deep_model.to(device)
 
 # # Transfer requried learnt parameters of pre-trained Siamese model
