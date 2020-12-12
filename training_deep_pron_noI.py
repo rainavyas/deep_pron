@@ -32,7 +32,7 @@ I = args.I
 # Save the command run
 if not os.path.isdir('CMDs'):
     os.mkdir('CMDs')
-with open('CMDs/training_deep_pron.cmd', 'a') as f:
+with open('CMDs/training_deep_pron_noI.cmd', 'a') as f:
     f.write(' '.join(sys.argv)+'\n')
 
 pkl = pickle.load(open(pkl_file, "rb"))
@@ -42,7 +42,7 @@ print("Loaded pkl")
 phones = get_phones()
 
 # Get the batched tensors
-X1, X2, M1, M2 = get_vects(pkl, phones, N, F, I)
+X1, X2, M1, M2 = get_vects(pkl, phones, N, F)
 
 # Get the output labels
 y = (pkl['score'])
@@ -83,7 +83,7 @@ train_ds = TensorDataset(X1_train, X2_train, M1_train, M2_train, y_train)
 train_dl = DataLoader(train_ds, batch_size = bs, shuffle = True)
 
 # Load the pre-trained siamese model
-siamese_model = torch.load(siam_model)
+#siamese_model = torch.load(siam_model)
 
 # Initialise deep pron model to be trained
 deep_model = Deep_Pron()
