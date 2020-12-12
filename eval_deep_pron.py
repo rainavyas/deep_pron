@@ -20,6 +20,7 @@ pkl_file = args.PKL
 model_file = args.MODEL
 F = args.F
 I = args.I
+N=5
 
 # Save the command run
 if not os.path.isdir('CMDs'):
@@ -34,7 +35,7 @@ print("Loaded pkl")
 phones = get_phones()
 
 # Get the batched tensors
-X1, X2, M1, M2 = get_vects(pkl, phones, F, I)
+X1, X2, M1, M2 = get_vects(pkl, phones, N, F, I)
 
 # Get the output labels
 y = (pkl['score'])
@@ -45,7 +46,7 @@ X2 = torch.from_numpy(X2).float()
 M1 = torch.from_numpy(M1).float()
 M2 = torch.from_numpy(M2).float()
 y = torch.FloatTensor(y)
-
+y = y[:N]
 
 # Load the deep pron model
 deep_model = torch.load(model_file)
