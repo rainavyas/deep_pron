@@ -4,9 +4,9 @@ class Siamese(torch.nn.Module):
     def __init__(self, num_features=13):
 
         super(Siamese, self).__init__()
-        self.bn2D = torch.nn.BatchNorm2d(num_features=1128)
+        num_distance_features = 1128
         self.attn = torch.nn.Linear(num_features, num_features, bias = False)
-
+        self.layer = torch.nn.Linear(num_distance_features, num_distance_features)
 
     def apply_selfattn_no_query(self, X, A, M):
         '''
@@ -62,17 +62,17 @@ class Siamese(torch.nn.Module):
         ensured by training using the true KL-divergence between Gaussian
         distribution per phone per speaker
         '''
-        # Apply batch normalisation
-        batched_X1 = self.bn2D(X1)
-        batched_X2 = self.bn2D(X2)
 
         #Apply attention over frames
         A = self.attn(torch.eye(batched_X1.size(3)))
-        H1 = self.apply_selfattn_no_query(batched_X1, A, M1)
-        H2 = self.apply_selfattn_no_query(batched_X2, A, M2)
+        H1 = self.apply_selfattn_no_query(X1, A, M1)
+        H2 = self.apply_selfattn_no_query(X2, A, M2)
 
         # l2-norm to find the distance between sample pairs
         d1 = (H1-H2)**2
         d = torch.sum(d1, dim=-1)
 
-        return d
+        # Apply layer 
+        d_scaled = self.layer(d)
+
+        return d_scaled
