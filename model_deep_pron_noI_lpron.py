@@ -4,10 +4,11 @@ import torch.nn.functional as F
 class Deep_Pron(torch.nn.Module):
     def __init__(self, num_features=13):
         super(Deep_Pron, self).__init__()
+        num_distance_features = 1128
+        self.bn2D = torch.nn.BatchNorm2d(num_features=num_distance_features)
         self.attn = torch.nn.Linear(num_features, num_features, bias = False)
 
         # Parameters for FCC
-        num_distance_features = 1128
         self.bn1 = torch.nn.BatchNorm1d(num_features=num_distance_features)
         self.fc1 = torch.nn.Linear(num_distance_features, 1000)
         self.fc2 = torch.nn.Linear(1000, 1000)
@@ -67,12 +68,14 @@ class Deep_Pron(torch.nn.Module):
         Mi = mask with same dimensions as X, with 1s in positions of value
         and 0 elsewhere
         '''
-
+        # Apply batch normalisation
+        batched_X1 = bn2D(X1)
+        batched_X2 = bn2D(X2)
 
         # Apply attention over frames
-        A = self.attn(torch.eye(X1.size(-1)))
-        X1_after_frame_attn = self.apply_attention(X1, A, M1)
-        X2_after_frame_attn = self.apply_attention(X2, A, M2)
+        A = self.attn(torch.eye(batched_X1.size(-1)))
+        X1_after_frame_attn = self.apply_attention(batched_X1, A, M1)
+        X2_after_frame_attn = self.apply_attention(batched_X2, A, M2)
 
         # Calculate phone distances using l2-norm
         d1 = (X1_after_frame_attn-X2_after_frame_attn)**2
