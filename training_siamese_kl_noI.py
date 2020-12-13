@@ -16,6 +16,9 @@ def calculate_kl(p_vects, q_vects, p_frames_mask, q_frames_mask):
     p_lengths = torch.sum(p_frames_mask[:,:,:,0].squeeze(), dim=2).unsqueeze(dim=2).repeat(1,1,13)
     q_lengths = torch.sum(q_frames_mask[:,:,:,0].squeeze(), dim=2).unsqueeze(dim=2).repeat(1,1,13)
 
+    p_lengths[p_lengths==0] = 1
+    q_lengths[q_lengths==0] = 1
+
     # Compute means
     p_means = torch.sum(p_vects, dim=2)/p_lengths
     q_means = torch.sum(q_vects, dim=2)/q_lengths
@@ -46,7 +49,7 @@ def calculate_kl(p_vects, q_vects, p_frames_mask, q_frames_mask):
     # Need to first calculate num_phones_mask
     num_phones_mask_p = p_frames_mask[:,:,0,0].squeeze()
     num_phones_mask_q = q_frames_mask[:,:,0,0].squeeze()
-    num_phones_mask = p_frames_mask + q_frames_mask
+    num_phones_mask = num_phones_mask_p + num_phones_mask_q
     num_phones_mask[num_phones_mask==1]=0
     num_phones_mask[num_phones_mask==2]=1
 
@@ -60,8 +63,8 @@ def calculate_kl(p_vects, q_vects, p_frames_mask, q_frames_mask):
     q_covs = q_covariances_shifted_masked + torch.eye(13)
 
     # Calculate the symmetric KL divergences
-    p = torch.distributions.MultivariateNormal(p_means, p_covariances)
-    q = torch.distributions.MultivariateNormal(q_means, q_covariances)
+    p = torch.distributions.MultivariateNormal(p_means, p_covs)
+    q = torch.distributions.MultivariateNormal(q_means, q_covs)
 
     kl_loss = ((torch.distributions.kl_divergence(p, q) + torch.distributions.kl_divergence(q, p))*0.5)
 
@@ -74,7 +77,7 @@ commandLineParser.add_argument('OUT', type=str, help='Specify output pt file')
 commandLineParser.add_argument('--N', default=993, type=int, help='Specify number of speakers')
 commandLineParser.add_argument('--F', default=1000, type=int, help='Specify maximum number of frames in phone instance')
 
-args = commandLineParser.parse_args(p_vects, q_vects, p_frames_mask, q_frames_mask)
+args = commandLineParser.parse_args()
 pkl_file = args.PKL
 out_file = args.OUT
 N = args.N
@@ -119,7 +122,7 @@ y_train = y[validation_size:N]
 y_val = y[:validation_size]
 
 # Define training constants
-lr = 8*1e-5
+lr = 8*1e-2
 epochs = 20
 bs = 50
 sch = 0.985
@@ -137,11 +140,11 @@ siamese_model = Siamese()
 print("Initialised Model")
 
 criterion = torch.nn.MSELoss(reduction='mean')
-optimizer = torch.optim.SGD(deep_model.parameters(), lr=lr, momentum = 0.9, nesterov=True)
+optimizer = torch.optim.SGD(siamese_model.parameters(), lr=lr, momentum = 0.9, nesterov=True)
 scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size = 1, gamma = sch)
 
 for epoch in range(epochs):
-    deep_model.train()
+    siamese_model.train()
     print("On Epoch, ", epoch)
 
     for x1, x2, m1, m2, yb in train_dl:
@@ -150,8 +153,8 @@ for epoch in range(epochs):
         y_pred = siamese_model(x1, x2, m1, m2)
 
         # Compute loss
-        y_pred_flat = torch.reshape(y_pred, (-1, y_pred.size(-1))).squeeze()
-        yb_flat = torch.reshape(yb, (-1, yb_flat.size())).squeeze()
+        y_pred_flat = torch.reshape(y_pred, (-1,)).squeeze()
+        yb_flat = torch.reshape(yb, (-1,)).squeeze()
         loss = criterion(y_pred, yb)
 
         # Zero gradients, backward pass, update weights
@@ -163,9 +166,9 @@ for epoch in range(epochs):
     # Validation
     siamese_model.eval()
     y_val_pred = siamese_model(X1_val, X2_val, M1_val, M2_val)
-    y_val_pred_flat = torch.reshape(y_val_pred, (-1, y_val_pred.size(-1))).squeeze()
-    y_val_flat = torch.reshape(y_val, (-1, y_val.size(-1))).squeeze()
-    mse_loss = calculate_mse(y_val_pred_flat.tolist(), y_val_flat.tolist())
+    y_val_pred_flat = torch.reshape(y_val_pred, (-1,)).squeeze()
+    y_val_flat = torch.reshape(y_val, (-1,)).squeeze()
+    mse_loss = calculate_mse(y_val_pred_flat, y_val_flat)
     print("Validation Loss: ", mse_loss)
 
 # Save the trained model
