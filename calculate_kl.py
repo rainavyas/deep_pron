@@ -87,6 +87,9 @@ print("Loaded pkl")
 
 N = len(pkl['plp'])
 
+# Get the phones
+phones = get_phones()
+
 # Get the batched tensors
 X1, X2, M1, M2 = get_vects(pkl, phones, N, F=1000)
 
