@@ -69,8 +69,8 @@ class Deep_Pron(torch.nn.Module):
         and 0 elsewhere
         '''
         # Apply batch normalisation
-        batched_X1 = bn2D(X1)
-        batched_X2 = bn2D(X2)
+        batched_X1 = self.bn2D(X1)
+        batched_X2 = self.bn2D(X2)
 
         # Apply attention over frames
         A = self.attn(torch.eye(batched_X1.size(-1)))
