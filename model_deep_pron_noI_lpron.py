@@ -78,7 +78,7 @@ class Deep_Pron(torch.nn.Module):
         d = torch.sum(d1, dim=-1)
 
         # Apply layer
-        d_scaled = self.layer(d)
+        d_scaled = F.relu(self.layer(d))
 
         # log all the features
         # add small error to make 0-kl distances not a NaN
