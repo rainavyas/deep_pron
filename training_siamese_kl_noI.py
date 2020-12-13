@@ -66,7 +66,7 @@ y_train = y[validation_size:]
 y_val = y[:validation_size]
 
 # Define training constants
-lr = 8*1e-0
+lr = 8*1e-11
 epochs = 20
 bs = 50
 sch = 0.985
@@ -116,4 +116,4 @@ for epoch in range(epochs):
     print("Validation Loss: ", mse_loss)
 
 # Save the trained model
-torch.save(deep_model, out_file)
+torch.save(siamese_model, out_file)
