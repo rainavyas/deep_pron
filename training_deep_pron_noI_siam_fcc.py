@@ -10,6 +10,7 @@ from pkl2pqvects_noI import get_vects, get_phones
 from model_deep_pron_noI_lpron import Deep_Pron
 from model_siamese_noI import Siamese
 from utility import calculate_mse
+from models import FCC
 
 def transfer_params(deep_model, other_model_path):
     # Transfer required learnt parameters
