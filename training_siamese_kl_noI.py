@@ -66,7 +66,7 @@ y_train = y[validation_size:]
 y_val = y[:validation_size]
 
 # Define training constants
-lr = 8*1e-2
+lr = 8*1e-0
 epochs = 20
 bs = 50
 sch = 0.985
