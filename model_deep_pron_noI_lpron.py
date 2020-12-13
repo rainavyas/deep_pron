@@ -69,7 +69,7 @@ class Deep_Pron(torch.nn.Module):
         '''
 
         # Apply attention over frames
-        A = self.attn(torch.eye(batched_X1.size(-1)))
+        A = self.attn(torch.eye(X1.size(-1)))
         X1_after_frame_attn = self.apply_attention(X1, A, M1)
         X2_after_frame_attn = self.apply_attention(X2, A, M2)
 

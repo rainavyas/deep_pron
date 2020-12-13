@@ -64,7 +64,7 @@ class Siamese(torch.nn.Module):
         '''
 
         #Apply attention over frames
-        A = self.attn(torch.eye(batched_X1.size(3)))
+        A = self.attn(torch.eye(X1.size(3)))
         H1 = self.apply_selfattn_no_query(X1, A, M1)
         H2 = self.apply_selfattn_no_query(X2, A, M2)
 
@@ -72,7 +72,7 @@ class Siamese(torch.nn.Module):
         d1 = (H1-H2)**2
         d = torch.sum(d1, dim=-1)
 
-        # Apply layer 
+        # Apply layer
         d_scaled = self.layer(d)
 
         return d_scaled
