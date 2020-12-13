@@ -1,4 +1,5 @@
 import torch
+import torch.nn.functional as F
 
 class Siamese(torch.nn.Module):
     def __init__(self, num_features=13):
@@ -73,6 +74,6 @@ class Siamese(torch.nn.Module):
         d = torch.sum(d1, dim=-1)
 
         # Apply layer
-        d_scaled = self.layer(d)
+        d_scaled = F.relu(self.layer(d))
 
         return d_scaled
