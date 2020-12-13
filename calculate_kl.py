@@ -6,6 +6,7 @@ import pickle
 import sys
 import os
 import argparse
+import math
 from pkl2pqvects_noI import get_vects, get_phones
 
 def calculate_kl(p_vects, q_vects, p_frames_mask, q_frames_mask):
@@ -99,8 +100,20 @@ X2 = torch.from_numpy(X2).float()
 M1 = torch.from_numpy(M1).float()
 M2 = torch.from_numpy(M2).float()
 
-# Get the output kl-distance values
-y = calculate_kl(X1, X2, M1, M2)
+# Get the output kl-distance values in batches
+y = []
+bs = 20
+for i in range(math.floor(N/bs)):
+    print("On batch ", i)
+    start = i*bs
+    end = (i+1)*bs
+    X1_curr = X1[start:end]
+    X2_curr = X2[start:end]
+    M1_curr = M1[start:end]
+    M2_curr = M2[start:end]
+    y_curr = calculate_kl(X1_curr, X2_curr, M1_curr, M2_curr)
+    y.append(y_curr)
+y = torch.cat(y, dim=0)
 print("Calculated KL distances")
 
 # Save to pkl file
