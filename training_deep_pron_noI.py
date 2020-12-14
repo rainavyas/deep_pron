@@ -55,7 +55,7 @@ y = torch.FloatTensor(y)
 
 
 # Split into training and validation sets
-validation_size = 50
+validation_size = 10
 X1_train = X1[validation_size:]
 X1_val = X1[:validation_size]
 X2_train = X2[validation_size:]
@@ -68,7 +68,7 @@ y_train = y[validation_size:N]
 y_val = y[:validation_size]
 
 # Define training constants
-lr = 8*1e-5
+lr = 8*1e-4
 epochs = 20
 bs = 50
 sch = 0.985
